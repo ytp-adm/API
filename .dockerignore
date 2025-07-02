@@ -1,0 +1,46 @@
+# Git関連
+.git
+.gitignore
+
+# Python関連
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.pytest_cache
+
+# 開発・テスト関連
+test_simple.py
+main_new.py
+debug_headings.py
+test_api.py
+
+# IDE関連
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS関連
+.DS_Store
+Thumbs.db
+
+# ドキュメント
+README.md
+
+# デプロイ関連
+deploy.sh
+cloudbuild.yaml

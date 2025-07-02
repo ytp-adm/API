@@ -1,0 +1,33 @@
+steps:
+  # Docker イメージをビルド
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/seo-fastapi-repo/seo-fastapi:$BUILD_ID', '.']
+  
+  # Docker イメージをArtifact Registryにプッシュ
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/seo-fastapi-repo/seo-fastapi:$BUILD_ID']
+  
+  # Cloud Runにデプロイ
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'seo-fastapi'
+      - '--image'
+      - 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/seo-fastapi-repo/seo-fastapi:$BUILD_ID'
+      - '--region'
+      - 'asia-northeast1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--memory'
+      - '1Gi'
+      - '--cpu'
+      - '1'
+      - '--max-instances'
+      - '10'
+      - '--timeout'
+      - '300'
+
+images:
+  - 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/seo-fastapi-repo/seo-fastapi:$BUILD_ID'
