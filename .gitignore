@@ -62,3 +62,16 @@ htmlcov/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+
+# Google Cloud
+*.json
+gcloud-key.json
+service-account-key.json
+dify-service-account-key.json
+
+# Temporary files
+test_*.py
+debug_*.py
+*_backup.py
+*_old.py
+*_temp.py
