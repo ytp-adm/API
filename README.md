@@ -7,7 +7,7 @@
 - **API URL**: https://seo-fastapi-449500499475.asia-northeast1.run.app
 - **プロジェクト**: dify-seo-api-2025
 - **リージョン**: asia-northeast1
-- **認証**: Google Cloud IDトークン + APIキー
+- **認証**: オプション（X-API-Keyヘッダー推奨）
 
 ## 📋 機能
 
@@ -36,10 +36,9 @@ python main.py
 ## 📡 API仕様
 
 ### 認証
-すべてのAPIエンドポイント（`/`と`/health`を除く）には以下の認証が必要です：
+APIキーによる認証はオプションです。セキュリティを強化したい場合は以下のヘッダーを追加してください：
 
 ```http
-Authorization: Bearer [Google Cloud IDトークン]
 X-API-Key: dify-seo-api-key-2025
 ```
 
@@ -96,19 +95,17 @@ X-API-Key: dify-seo-api-key-2025
 
 ## 🔐 認証設定
 
-### Google Cloud IDトークンの取得
+### APIキー認証（オプション）
 
-```bash
-# サービスアカウントで認証
-gcloud auth activate-service-account --key-file=dify-service-account-key.json
+セキュリティを強化したい場合は、リクエストヘッダーにAPIキーを含めてください：
 
-# IDトークンを取得
-gcloud auth print-identity-token --audiences=https://seo-fastapi-449500499475.asia-northeast1.run.app
+```http
+X-API-Key: dify-seo-api-key-2025
 ```
 
 ## 🔗 Dify統合
 
-詳細な統合ガイドは [`DIFY_INTEGRATION.md`](DIFY_INTEGRATION.md) を参照してください。
+詳細な統合ガイドは [`DIFY_INTEGRATION_UPDATED.md`](DIFY_INTEGRATION_UPDATED.md) を参照してください。
 
 ### 基本設定
 
@@ -118,9 +115,8 @@ gcloud auth print-identity-token --audiences=https://seo-fastapi-449500499475.as
 - **Headers**:
   ```json
   {
-    "Authorization": "Bearer [IDトークン]",
-    "X-API-Key": "dify-seo-api-key-2025",
-    "Content-Type": "application/json"
+    "Content-Type": "application/json",
+    "X-API-Key": "dify-seo-api-key-2025"
   }
   ```
 - **Body**:
@@ -134,16 +130,17 @@ gcloud auth print-identity-token --audiences=https://seo-fastapi-449500499475.as
 
 ```
 SEO_FAST_API/
-├── main.py                    # メインAPIアプリケーション
-├── requirements.txt           # Python依存関係
-├── Dockerfile                # Dockerコンテナ設定
-├── cloudbuild.yaml           # Cloud Build設定
-├── deploy.sh                 # デプロイスクリプト
-├── README.md                 # このファイル
-├── DIFY_INTEGRATION.md       # Dify統合ガイド
-├── .gitignore               # Git除外設定
-├── .dockerignore            # Docker除外設定
-└── dify-service-account-key.json  # サービスアカウントキー（非公開）
+├── main.py                         # メインAPIアプリケーション
+├── requirements.txt                # Python依存関係
+├── Dockerfile                     # Dockerコンテナ設定
+├── cloudbuild.yaml                # Cloud Build設定
+├── deploy.sh                      # デプロイスクリプト
+├── README.md                      # このファイル
+├── DIFY_INTEGRATION_UPDATED.md    # Dify統合ガイド（最新版）
+├── dify_test_example.md           # Difyテスト例
+├── test_dify_integration.py       # Dify統合テスト
+├── GITHUB_SETUP.md                # GitHub設定ガイド
+└── PULL_REQUEST_TEMPLATE.md       # PRテンプレート
 ```
 
 ## 🛠️ 技術スタック
@@ -180,16 +177,17 @@ gcloud builds submit --config cloudbuild.yaml
 
 ### よくある問題
 
-1. **403 Forbiddenエラー**
-   - Google Cloud IDトークンが必要です
-   - 組織ポリシーによりパブリックアクセスが制限されています
+1. **見出しタグが抽出できない**
+   - サイトがJavaScriptで動的に生成している場合があります
+   - 圧縮されたコンテンツの場合、APIが自動的に処理します
 
 2. **401 Unauthorizedエラー**
-   - IDトークンの期限切れまたは無効
-   - APIキーが正しく設定されているか確認
+   - APIキーが正しく設定されているか確認してください
+   - `X-API-Key: dify-seo-api-key-2025`
 
-3. **APIキーエラー**
-   - `X-API-Key: dify-seo-api-key-2025` が正しく設定されているか確認
+3. **タイムアウトエラー**
+   - 大量のURLを一度に処理する場合、時間がかかることがあります
+   - URLを分割して複数回に分けて実行してください
 
 ## 💰 料金
 
@@ -199,10 +197,10 @@ gcloud builds submit --config cloudbuild.yaml
 
 ## 🔒 セキュリティ
 
-- Google Cloud IDトークンによる認証
-- APIキーによる追加セキュリティ層
-- サービスアカウントベースの権限管理
-- 組織ポリシーに準拠したアクセス制御
+- オプションのAPIキー認証
+- CORS設定によるクロスオリジンアクセス制御
+- パブリックアクセス対応（Dify統合用）
+- 適切なエラーハンドリングとログ出力
 
 ## 📄 ライセンス
 
@@ -210,6 +208,7 @@ MIT License
 
 ---
 
-**最終更新**: 2025年7月3日  
-**APIバージョン**: v1.0  
+**最終更新**: 2025年7月7日
+**APIバージョン**: v1.0
 **Cloud Runサービス**: seo-fastapi (asia-northeast1)
+**現在のリビジョン**: seo-fastapi-00006-f9m
