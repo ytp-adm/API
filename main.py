@@ -12,6 +12,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 from typing import List, Dict, Union, Optional
 import logging
+import asyncio
 import time
 import os
 import tempfile
@@ -288,7 +289,7 @@ async def extract_headings(
     x_api_key: Optional[str] = Header(None)
 ):
     """
-    指定されたURLリストから<h1>、<h2>、<h3>タグを階層構造で一括抽出する（Selenium使用）
+    指定されたURLリストから<h1>、<h2>、<h3>タグを階層構造で一括抽出する（Selenium使用、並列処理対応）
     
     Args:
         request: URLリストを含むリクエストボディ
@@ -305,38 +306,36 @@ async def extract_headings(
         )
     
     start_time = time.time()
-    results = []
     
-    for url in request.urls:
-        url_str = str(url)
-        try:
-            # Seleniumでヘッダータグを抽出
-            h1_tags, h2_sections, error_msg = extract_headings_with_selenium(url_str)
-            
+    # 各URLに対する非同期タスクを作成
+    # asyncio.to_threadを使い、同期的なSelenium関数を別スレッドで実行
+    tasks = [
+        asyncio.to_thread(extract_headings_with_selenium, str(url))
+        for url in request.urls
+    ]
+    
+    # すべてのタスクが完了するのを待つ
+    task_results = await asyncio.gather(*tasks, return_exceptions=True)
+    
+    results = []
+    for i, res in enumerate(task_results):
+        url_str = str(request.urls[i])
+        if isinstance(res, Exception):
+            # asyncio.gatherで例外が発生した場合
+            error_msg = f"タスク実行中の予期しないエラー: {res}"
+            logger.error(f"{url_str} - {error_msg}")
+            results.append(URLResult(url=url_str, status="error", error=error_msg))
+        else:
+            # extract_headings_with_seleniumからの返り値を処理
+            h1_tags, h2_sections, error_msg = res
             if error_msg:
-                results.append(URLResult(
-                    url=url_str,
-                    status="error",
-                    error=error_msg
-                ))
+                results.append(URLResult(url=url_str, status="error", error=error_msg))
             else:
                 results.append(URLResult(
                     url=url_str,
                     status="success",
-                    headings=HeadingData(
-                        h1=h1_tags,
-                        h2_sections=h2_sections
-                    )
+                    headings=HeadingData(h1=h1_tags, h2_sections=h2_sections)
                 ))
-                
-        except Exception as e:
-            error_msg = f"予期しないエラー: {str(e)}"
-            logger.error(f"{url_str} - {error_msg}")
-            results.append(URLResult(
-                url=url_str,
-                status="error",
-                error=error_msg
-            ))
     
     processing_time = time.time() - start_time
     

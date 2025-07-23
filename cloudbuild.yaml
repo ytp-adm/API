@@ -1,22 +1,22 @@
 steps:
   # Docker イメージをビルド
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/seo-fastapi-repo/seo-fastapi:$BUILD_ID', '.']
+    args: ['build', '-t', '$_REGION-docker.pkg.dev/$PROJECT_ID/$_SERVICE_NAME-repo/$_SERVICE_NAME:$BUILD_ID', '.']
   
   # Docker イメージをArtifact Registryにプッシュ
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/seo-fastapi-repo/seo-fastapi:$BUILD_ID']
+    args: ['push', '$_REGION-docker.pkg.dev/$PROJECT_ID/$_SERVICE_NAME-repo/$_SERVICE_NAME:$BUILD_ID']
   
   # Cloud Runにデプロイ
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       - 'run'
       - 'deploy'
-      - 'seo-fastapi'
+      - '$_SERVICE_NAME'
       - '--image'
-      - 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/seo-fastapi-repo/seo-fastapi:$BUILD_ID'
+      - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_SERVICE_NAME-repo/$_SERVICE_NAME:$BUILD_ID'
       - '--region'
-      - 'asia-northeast1'
+      - '$_REGION'
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
@@ -30,4 +30,9 @@ steps:
       - '300'
 
 images:
-  - 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/seo-fastapi-repo/seo-fastapi:$BUILD_ID'
+  - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_SERVICE_NAME-repo/$_SERVICE_NAME:$BUILD_ID'
+
+# Cloud Buildの置換変数のデフォルト値を定義
+substitutions:
+  _SERVICE_NAME: seo-fastapi
+  _REGION: asia-northeast1
